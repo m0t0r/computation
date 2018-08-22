@@ -13,6 +13,8 @@ type Expression interface {
 	Reduce() (Expression, error)
 }
 
+// ------------------- NUMBER ------------------- //
+
 // Number is number type
 type Number struct {
 	value int
@@ -36,6 +38,8 @@ func (n Number) Reducible() bool {
 func (n Number) Reduce() (Expression, error) {
 	return Number{value: -1}, errors.New("Error: Number cannot be reduced")
 }
+
+// ------------------- ADD ------------------- //
 
 // Add is an addition type
 type Add struct {
@@ -70,6 +74,8 @@ func (a Add) Reduce() (Expression, error) {
 	}
 }
 
+// ------------------- MULTIPLY ------------------- //
+
 // Multiply is a multiplication type
 type Multiply struct {
 	left  Expression
@@ -103,21 +109,36 @@ func (m Multiply) Reduce() (Expression, error) {
 	}
 }
 
+// ------------------- MACHINE ------------------- //
+
+// Machine is a abstract machine type
+type Machine struct {
+	expression Expression
+}
+
+// Step simplifies expression
+func (m *Machine) Step() {
+	m.expression, _ = m.expression.Reduce()
+}
+
+// Run runs the process to simplify expression
+func (m Machine) Run() {
+	for m.expression.Reducible() {
+		fmt.Println(m.expression)
+		m.Step()
+	}
+	fmt.Println(m.expression)
+}
+
 func main() {
-	var e Expression
+	var m Machine
 
-	e = Add{
-		left:  Multiply{left: Number{value: 1}, right: Number{value: 2}},
-		right: Multiply{left: Number{value: 3}, right: Number{value: 4}},
+	m = Machine{
+		expression: Add{
+			left:  Multiply{left: Number{value: 1}, right: Number{value: 2}},
+			right: Multiply{left: Number{value: 3}, right: Number{value: 4}},
+		},
 	}
 
-	for e.Reducible() {
-		fmt.Println(e)
-		fmt.Println(e.Reducible())
-		e, _ = e.Reduce()
-	}
-
-	fmt.Println(e)
-	fmt.Println(e.Reducible())
-
+	m.Run()
 }
