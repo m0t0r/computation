@@ -8,21 +8,24 @@ import (
 // Expression is a base type
 type Expression interface {
 	String() string
-	Value() int
+	Value() ExpressionValue
 	Reducible() bool
 	Reduce() (Expression, error)
 }
+
+// ExpressionValue holds the value of expression
+type ExpressionValue interface{}
 
 // ------------------- NUMBER ------------------- //
 
 // Number is number type
 type Number struct {
-	value int
+	value ExpressionValue
 }
 
 // Value returns the value
-func (n Number) Value() int {
-	return n.value
+func (n Number) Value() ExpressionValue {
+	return n.value.(int)
 }
 
 func (n Number) String() string {
@@ -36,7 +39,33 @@ func (n Number) Reducible() bool {
 
 // Reduce simplifies an expression
 func (n Number) Reduce() (Expression, error) {
-	return Number{value: -1}, errors.New("Error: Number cannot be reduced")
+	return nil, errors.New("Error: Number cannot be reduced")
+}
+
+// ------------------- BOOLEAN ------------------- //
+
+// Boolean is number type
+type Boolean struct {
+	value ExpressionValue
+}
+
+// Value returns the value
+func (b Boolean) Value() ExpressionValue {
+	return b.value.(bool)
+}
+
+func (b Boolean) String() string {
+	return fmt.Sprintf("%t", b.value.(bool))
+}
+
+// Reducible defines if expression can be simplified
+func (b Boolean) Reducible() bool {
+	return false
+}
+
+// Reduce simplifies an expression
+func (b Boolean) Reduce() (Expression, error) {
+	return nil, errors.New("Error: Boolean cannot be reduced")
 }
 
 // ------------------- ADD ------------------- //
@@ -48,8 +77,18 @@ type Add struct {
 }
 
 // Value returns the value
-func (a Add) Value() int {
-	return a.left.Value() + a.right.Value()
+func (a Add) Value() ExpressionValue {
+	var leftVal interface{} = a.left.Value()
+	var rightVal interface{} = a.right.Value()
+
+	l, ok := leftVal.(int)
+	r, ok := rightVal.(int)
+
+	if ok {
+		return l + r
+	}
+
+	return errors.New("Error: Unable to calculate value")
 }
 
 func (a Add) String() string {
@@ -83,8 +122,18 @@ type Multiply struct {
 }
 
 // Value returns the value
-func (m Multiply) Value() int {
-	return m.left.Value() * m.right.Value()
+func (m Multiply) Value() ExpressionValue {
+	var leftVal interface{} = m.left.Value()
+	var rightVal interface{} = m.right.Value()
+
+	l, ok := leftVal.(int)
+	r, ok := rightVal.(int)
+
+	if ok {
+		return l * r
+	}
+
+	return errors.New("Error: Unable to calculate value")
 }
 
 func (m Multiply) String() string {
@@ -109,9 +158,54 @@ func (m Multiply) Reduce() (Expression, error) {
 	}
 }
 
+// ------------------- LESS THAN ------------------- //
+
+// LessThan is a "less than" comparison type
+type LessThan struct {
+	left  Expression
+	right Expression
+}
+
+// Value returns the value
+func (lt LessThan) Value() ExpressionValue {
+	var leftVal interface{} = lt.left.Value()
+	var rightVal interface{} = lt.right.Value()
+
+	l, ok := leftVal.(int)
+	r, ok := rightVal.(int)
+
+	if ok {
+		return l < r
+	}
+
+	return errors.New("Error: Unable to calculate value")
+}
+
+func (lt LessThan) String() string {
+	return fmt.Sprintf("%s < %s", lt.left.String(), lt.right.String())
+}
+
+// Reducible defines if expression can be simplified
+func (lt LessThan) Reducible() bool {
+	return true
+}
+
+// Reduce simplifies an expression
+func (lt LessThan) Reduce() (Expression, error) {
+	if lt.left.Reducible() {
+		reduce, _ := lt.left.Reduce()
+		return LessThan{left: reduce, right: lt.right}, nil
+	} else if lt.right.Reducible() {
+		reduce, _ := lt.right.Reduce()
+		return LessThan{left: lt.left, right: reduce}, nil
+	} else {
+		return Boolean{value: lt.Value()}, nil
+	}
+}
+
 // ------------------- MACHINE ------------------- //
 
-// Machine is a abstract machine type
+// Machine is an abstract machine type
 type Machine struct {
 	expression Expression
 }
@@ -121,7 +215,7 @@ func (m *Machine) Step() {
 	m.expression, _ = m.expression.Reduce()
 }
 
-// Run runs the process to simplify expression
+// Run starts the process to simplify an expression
 func (m Machine) Run() {
 	for m.expression.Reducible() {
 		fmt.Println(m.expression)
@@ -131,14 +225,33 @@ func (m Machine) Run() {
 }
 
 func main() {
-	var m Machine
+	var m1, m2 Machine
 
-	m = Machine{
+	fmt.Println("Machine 1 Test")
+
+	m1 = Machine{
 		expression: Add{
 			left:  Multiply{left: Number{value: 1}, right: Number{value: 2}},
 			right: Multiply{left: Number{value: 3}, right: Number{value: 4}},
 		},
 	}
 
-	m.Run()
+	m1.Run()
+
+	fmt.Println("Machine 2 Test")
+
+	m2 = Machine{
+		expression: LessThan{
+			left:  Number{value: 5},
+			right: Add{left: Number{value: 2}, right: Number{value: 2}},
+		},
+	}
+
+	m2.Run()
+
+	fmt.Println("Boolean Test")
+
+	b := Boolean{value: 1 > 0}
+	fmt.Println(b.Value())
+
 }
