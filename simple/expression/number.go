@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Number is number type
+// Number is a number type
 type Number struct {
 	Value ExpressionValue
 }

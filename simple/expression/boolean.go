@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Boolean is number type
+// Boolean is a boolean type
 type Boolean struct {
 	Value ExpressionValue
 }
