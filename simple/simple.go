@@ -10,7 +10,7 @@ type Expression interface {
 	String() string
 	Value() ExpressionValue
 	Reducible() bool
-	Reduce() (Expression, error)
+	Reduce(environment map[string]Expression) (Expression, error)
 }
 
 // ExpressionValue holds the value of expression
@@ -38,7 +38,7 @@ func (n Number) Reducible() bool {
 }
 
 // Reduce simplifies an expression
-func (n Number) Reduce() (Expression, error) {
+func (n Number) Reduce(environment map[string]Expression) (Expression, error) {
 	return nil, errors.New("Error: Number cannot be reduced")
 }
 
@@ -64,7 +64,7 @@ func (b Boolean) Reducible() bool {
 }
 
 // Reduce simplifies an expression
-func (b Boolean) Reduce() (Expression, error) {
+func (b Boolean) Reduce(environment map[string]Expression) (Expression, error) {
 	return nil, errors.New("Error: Boolean cannot be reduced")
 }
 
@@ -101,12 +101,12 @@ func (a Add) Reducible() bool {
 }
 
 // Reduce simplifies an expression
-func (a Add) Reduce() (Expression, error) {
+func (a Add) Reduce(environment map[string]Expression) (Expression, error) {
 	if a.left.Reducible() {
-		reduce, _ := a.left.Reduce()
+		reduce, _ := a.left.Reduce(environment)
 		return Add{left: reduce, right: a.right}, nil
 	} else if a.right.Reducible() {
-		reduce, _ := a.right.Reduce()
+		reduce, _ := a.right.Reduce(environment)
 		return Add{left: a.left, right: reduce}, nil
 	} else {
 		return Number{value: a.Value()}, nil
@@ -146,12 +146,12 @@ func (m Multiply) Reducible() bool {
 }
 
 // Reduce simplifies an expression
-func (m Multiply) Reduce() (Expression, error) {
+func (m Multiply) Reduce(environment map[string]Expression) (Expression, error) {
 	if m.left.Reducible() {
-		reduce, _ := m.left.Reduce()
+		reduce, _ := m.left.Reduce(environment)
 		return Multiply{left: reduce, right: m.right}, nil
 	} else if m.right.Reducible() {
-		reduce, _ := m.right.Reduce()
+		reduce, _ := m.right.Reduce(environment)
 		return Multiply{left: m.left, right: reduce}, nil
 	} else {
 		return Number{value: m.Value()}, nil
@@ -191,28 +191,55 @@ func (lt LessThan) Reducible() bool {
 }
 
 // Reduce simplifies an expression
-func (lt LessThan) Reduce() (Expression, error) {
+func (lt LessThan) Reduce(environment map[string]Expression) (Expression, error) {
 	if lt.left.Reducible() {
-		reduce, _ := lt.left.Reduce()
+		reduce, _ := lt.left.Reduce(environment)
 		return LessThan{left: reduce, right: lt.right}, nil
 	} else if lt.right.Reducible() {
-		reduce, _ := lt.right.Reduce()
+		reduce, _ := lt.right.Reduce(environment)
 		return LessThan{left: lt.left, right: reduce}, nil
 	} else {
 		return Boolean{value: lt.Value()}, nil
 	}
 }
 
+// ------------------- VARIABLE ------------------- //
+
+// Variable is a varible type
+type Variable struct {
+	name string
+}
+
+// Value returns the value
+func (v Variable) Value() ExpressionValue {
+	return v.Value
+}
+
+func (v Variable) String() string {
+	return fmt.Sprintf("%s", v.name)
+}
+
+// Reducible defines if expression can be simplified
+func (v Variable) Reducible() bool {
+	return true
+}
+
+// Reduce simplifies an expression
+func (v Variable) Reduce(environment map[string]Expression) (Expression, error) {
+	return environment[v.name], nil
+}
+
 // ------------------- MACHINE ------------------- //
 
 // Machine is an abstract machine type
 type Machine struct {
-	expression Expression
+	expression  Expression
+	environment map[string]Expression
 }
 
 // Step simplifies expression
 func (m *Machine) Step() {
-	m.expression, _ = m.expression.Reduce()
+	m.expression, _ = m.expression.Reduce(m.environment)
 }
 
 // Run starts the process to simplify an expression
@@ -225,9 +252,9 @@ func (m Machine) Run() {
 }
 
 func main() {
-	var m1, m2 Machine
+	var m1, m2, m3 Machine
 
-	fmt.Println("Machine 1 Test")
+	fmt.Print("Machine 1 Test - Expression Reduction\n\n")
 
 	m1 = Machine{
 		expression: Add{
@@ -238,7 +265,7 @@ func main() {
 
 	m1.Run()
 
-	fmt.Println("Machine 2 Test")
+	fmt.Print("Machine 2 Test - Less Than comparison\n\n")
 
 	m2 = Machine{
 		expression: LessThan{
@@ -249,9 +276,17 @@ func main() {
 
 	m2.Run()
 
-	fmt.Println("Boolean Test")
+	fmt.Print("Machine 3 Test - Variables evaluation\n\n")
 
-	b := Boolean{value: 1 > 0}
-	fmt.Println(b.Value())
+	env := make(map[string]Expression)
+	env["x"] = Number{value: 3}
+	env["y"] = Number{value: 4}
+
+	m3 = Machine{
+		expression:  Add{left: Variable{name: "x"}, right: Variable{name: "y"}},
+		environment: env,
+	}
+
+	m3.Run()
 
 }
