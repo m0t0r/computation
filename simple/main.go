@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	var m1 machine.Machine
+	var m1, m2 machine.Machine
 
 	fmt.Print("Machine 1 Test - Statements Evaluation\n\n")
 
@@ -25,4 +25,20 @@ func main() {
 	}
 
 	m1.Run()
+
+	fmt.Print("Machine 2 Test - If Statement Evaluation\n\n")
+
+	env = make(map[string]expr.Expression)
+	env["x"] = expr.Boolean{Value: true}
+
+	m2 = machine.Machine{
+		Statement: stm.If{
+			Condition:   expr.Variable{Name: "x"},
+			Consequence: stm.Assign{Name: "y", Expression: expr.Number{Value: 1}},
+			Alternative: stm.Assign{Name: "y", Expression: expr.Number{Value: 2}},
+		},
+		Environment: env,
+	}
+
+	m2.Run()
 }
