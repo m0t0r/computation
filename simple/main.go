@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	var m1, m2 machine.Machine
+	var m1, m2, m3 machine.Machine
 
 	fmt.Print("Machine 1 Test - Statements Evaluation\n\n")
 
@@ -41,4 +41,18 @@ func main() {
 	}
 
 	m2.Run()
+
+	fmt.Print("Machine 3 Test - Sequence Statement Evaluation\n\n")
+
+	env = make(map[string]expr.Expression)
+
+	m3 = machine.Machine{
+		Statement: stm.Sequence{
+			First:  stm.Assign{Name: "x", Expression: expr.Add{Left: expr.Number{Value: 1}, Right: expr.Number{Value: 1}}},
+			Second: stm.Assign{Name: "y", Expression: expr.Add{Left: expr.Variable{Name: "x"}, Right: expr.Number{Value: 3}}},
+		},
+		Environment: env,
+	}
+
+	m3.Run()
 }
