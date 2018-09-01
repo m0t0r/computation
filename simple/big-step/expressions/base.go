@@ -1,11 +1,8 @@
-package expression
+package expressions
 
 // Expression is a base type
 type Expression interface {
-	String() string
-	GetValue() ExpressionValue
-	Reducible() bool
-	Reduce(environment map[string]Expression) (Expression, error)
+	Evaluate(enviroment map[string]Expression) Expression
 }
 
 // ExpressionValue holds the value of expression
