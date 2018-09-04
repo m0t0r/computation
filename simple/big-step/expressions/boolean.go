@@ -12,6 +12,6 @@ func (b Boolean) String() string {
 }
 
 // Evaluate processes the statement
-func (b Boolean) Evaluate(enviroment map[string]Expression) Expression {
+func (b Boolean) Evaluate(environment map[string]Expression) Expression {
 	return b
 }

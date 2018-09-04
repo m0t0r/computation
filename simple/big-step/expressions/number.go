@@ -12,6 +12,6 @@ func (n Number) String() string {
 }
 
 // Evaluate processes the statement
-func (n Number) Evaluate(enviroment map[string]Expression) Expression {
+func (n Number) Evaluate(environment map[string]Expression) Expression {
 	return n
 }

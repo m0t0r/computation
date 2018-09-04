@@ -7,9 +7,9 @@ type Add struct {
 }
 
 // Evaluate processes the statement
-func (a Add) Evaluate(enviroment map[string]Expression) Expression {
-	var left = a.Left.Evaluate(enviroment).(Number)
-	var right = a.Right.Evaluate(enviroment).(Number)
+func (a Add) Evaluate(environment map[string]Expression) Expression {
+	var left = a.Left.Evaluate(environment).(Number)
+	var right = a.Right.Evaluate(environment).(Number)
 
 	l := left.Value.(int)
 	r := right.Value.(int)

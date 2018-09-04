@@ -7,9 +7,9 @@ type Multiply struct {
 }
 
 // Evaluate processes the statement
-func (m Multiply) Evaluate(enviroment map[string]Expression) Expression {
-	var left = m.Left.Evaluate(enviroment).(Number)
-	var right = m.Right.Evaluate(enviroment).(Number)
+func (m Multiply) Evaluate(environment map[string]Expression) Expression {
+	var left = m.Left.Evaluate(environment).(Number)
+	var right = m.Right.Evaluate(environment).(Number)
 
 	l := left.Value.(int)
 	r := right.Value.(int)
